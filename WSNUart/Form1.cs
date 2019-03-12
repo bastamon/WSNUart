@@ -297,11 +297,13 @@ namespace WSNUart
                                         if (dtStatistics.Rows.Contains(m_Result.nodeId))
                                         {
                                             DataRow drSel = dtStatistics.Rows.Find(m_Result.nodeId);
+
                                             if ((int)drSel[COLUM_AVG_PKTCNT] < m_PacketNum)
                                             {
                                                 updateStatItem(drSel);
                                                 appendData();
-                                                if ((int)drSel[COLUM_AVG_PKTCNT] == m_PacketNum)
+
+                                                if (isFulled(Convert.ToInt32(m_Result.nodeId))/*(int)drSel[COLUM_AVG_PKTCNT] == m_PacketNum*/)//按序号距离判断
                                                 {
                                                     updateVoltage(drSel, m_Result.volt);
                                                     m_DoneCntr++;
@@ -352,6 +354,38 @@ namespace WSNUart
                 }
                 Thread.Sleep(0);
             }
+        }
+
+
+        public bool isFulled(Int32 nodeId)
+        {
+            DataTable dtemp = dtOri.Clone();
+            DataRow[] dr = dtOri.Select(string.Format("{0}={1}", COLUM_NODE_ID, nodeId/*Convert.ToInt32(m_Result.nodeId)*/));
+            for (int i = 0; i < dr.Length; i++)
+            {
+                dtemp.ImportRow((DataRow)dr[i]);
+            }
+            int maxNo = dtemp.AsEnumerable().Select(t => t.Field<int>(COLUM_SEQ_NO)).Max();//找最大
+            int minNo = dtemp.AsEnumerable().Select(t => t.Field<int>(COLUM_SEQ_NO)).Min();
+            ////int maxNo== Convert.ToInt32(dtemp.AsEnumerable().OrderBy(dr => dr[COLUM_SEQ_NO]).FirstOrDefault()[COLUM_SEQ_NO]);
+            if (maxNo  - minNo > m_PacketNum - 1)
+            {
+                try
+                {
+                    dtOri.Rows.Remove();//移除nodeId&&maxNo所在行
+                    //dtStat.Rows.Remove(curRow);
+                }catch(Exception ex)
+                {
+                    Console.WriteLine(string.Format("catch unsolve exception: {0}\r\n异常信息：{1}\r\n异常堆栈：{2}", ex.GetType(), ex.Message, ex.StackTrace));
+                }
+                return true;
+            }
+            else if (maxNo  - minNo == m_PacketNum - 1)
+            {
+                return true;
+            }
+            else
+                return false;
         }
 
 
@@ -847,11 +881,20 @@ namespace WSNUart
         /// <summary>
         /// 更新统计数据。
         /// </summary>
-        /// <param name="curRow">在统计表中当前需要更新的行。 </param>
+        /// <param name="curRow">在统计表中当前需要更新的行。May remove curRow from dtStatistics </param>
         private void updateStatItem(DataRow curRow)
         {
-            int lastNo, curNo,curCnt;
+            //int maxNo = dtStat.AsEnumerable().Select(t => t.Field<int>(COLUM_SEQ_NO)).Max();//找最大
+            //int minNo = dtStat.AsEnumerable().Select(t => t.Field<int>(COLUM_SEQ_NO)).Min();
+            ////int maxNo== Convert.ToInt32(dtStat.AsEnumerable().OrderBy(dr => dr[COLUM_SEQ_NO]).FirstOrDefault()[COLUM_SEQ_NO]);
+            //if (maxNo + 1 - minNo > m_PacketNum - 1)
+            //{
+            //    //dtStat.Rows.Remove(dtStat.AsEnumerable().OrderBy(dr => dr[COLUM_SEQ_NO]).LastOrDefault());
+            //    dtStat.Rows.Remove(curRow);
+            //    return;
+            //}
             
+            int lastNo, curNo,curCnt;            
             lastNo = (int)curRow[COLUM_AVG_INITSN];
             curNo = m_Result.seqNO;
             curCnt = (int)curRow[COLUM_AVG_PKTCNT];
@@ -1208,7 +1251,7 @@ namespace WSNUart
         /// <param name="iTotal">接收到数据的节点总数</param>
         /// <param name="iDone">已完成的数量</param>
         private bool checkFinish(int iTotal, int iDone)
-        {
+        {            
             if (iTotal == iDone)
             {
                 this.Invoke(new MethodInvoker(delegate
