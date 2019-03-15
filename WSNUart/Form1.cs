@@ -300,10 +300,12 @@ namespace WSNUart
 
                                             if ((int)drSel[COLUM_AVG_PKTCNT] < m_PacketNum)
                                             {
-                                                updateStatItem(drSel);
-                                                appendData();
-
-                                                if (isFulled(Convert.ToInt32(m_Result.nodeId))/*(int)drSel[COLUM_AVG_PKTCNT] == m_PacketNum*/)//按序号距离判断
+                                                if(!isFulled(Convert.ToInt32(m_Result.nodeId)))
+                                                {
+                                                    updateStatItem(drSel);
+                                                    appendData();
+                                                }
+                                                else /*(int)drSel[COLUM_AVG_PKTCNT] == m_PacketNum)*///按序号距离判断
                                                 {
                                                     updateVoltage(drSel, m_Result.volt);
                                                     m_DoneCntr++;
@@ -359,34 +361,41 @@ namespace WSNUart
 
         public bool isFulled(Int32 nodeId)
         {
-            DataTable dtemp = dtOri.Clone();
-            DataRow[] dr = dtOri.Select(string.Format("{0}={1}", COLUM_NODE_ID, nodeId/*Convert.ToInt32(m_Result.nodeId)*/));
-            for (int i = 0; i < dr.Length; i++)
-            {
-                dtemp.ImportRow((DataRow)dr[i]);
-            }
+            //DataRow[] dr = dtOri.Select(string.Format("{0}={1}", COLUM_NODE_ID, nodeId));
+            DataTable dtemp = ToDataTable(dtOri.Select(string.Format("{0}={1}", COLUM_NODE_ID, nodeId)));
             int maxNo = dtemp.AsEnumerable().Select(t => t.Field<int>(COLUM_SEQ_NO)).Max();//找最大
             int minNo = dtemp.AsEnumerable().Select(t => t.Field<int>(COLUM_SEQ_NO)).Min();
-            ////int maxNo== Convert.ToInt32(dtemp.AsEnumerable().OrderBy(dr => dr[COLUM_SEQ_NO]).FirstOrDefault()[COLUM_SEQ_NO]);
-            if (maxNo  - minNo > m_PacketNum - 1)
+
+            //int maxNo== Convert.ToInt32(dtemp.AsEnumerable().OrderBy(dr => dr[COLUM_SEQ_NO]).FirstOrDefault()[COLUM_SEQ_NO]);
+            if (maxNo  - minNo == m_PacketNum - 1)
             {
+                return true;
+            }
+            else if (maxNo - minNo > m_PacketNum - 1)
+            {
+                DataRow[] dr0 = dtOri.Select(string.Format("{0}={1} and {2}={3}", COLUM_NODE_ID, nodeId, COLUM_SEQ_NO, maxNo));
                 try
-                {
-                    dtOri.Rows.Remove();//移除nodeId&&maxNo所在行
-                    //dtStat.Rows.Remove(curRow);
-                }catch(Exception ex)
+                {                    
+                    dtOri.Rows.Remove(dr0[0]);//移除dtemp中maxNo所在行
+                }
+                catch (Exception ex)
                 {
                     Console.WriteLine(string.Format("catch unsolve exception: {0}\r\n异常信息：{1}\r\n异常堆栈：{2}", ex.GetType(), ex.Message, ex.StackTrace));
                 }
                 return true;
             }
-            else if (maxNo  - minNo == m_PacketNum - 1)
-            {
-                return true;
-            }
             else
                 return false;
         }
+
+        public DataTable ToDataTable(DataRow[] rows)  
+        {  
+            if (rows == null || rows.Length == 0) return null;  
+            DataTable tmp = rows[0].Table.Clone();  // 复制DataRow的表结构  
+            foreach (DataRow row in rows)  
+                tmp.Rows.Add(row.ItemArray);  // 将DataRow添加到DataTable中  
+            return tmp;  
+        } 
 
 
         public string CurrentTime() // 插入当前时间到时间字段
@@ -490,6 +499,8 @@ namespace WSNUart
             dtOri.Columns.Add(COLUM_HOP_COUNT, typeof(int));
             dtOri.Columns.Add(COLUM_TIME_DIFF, typeof(long));
             dtOri.Columns.Add(COLUM_GET_TIME, typeof(string));
+            //dtOri.PrimaryKey = new DataColumn[2]{ dtOri.Columns[COLUM_NODE_ID], dtOri.Columns[COLUM_SEQ_NO] };
+
 
             dtStatistics = new DataTable(TABLE_STATISTIC);
             dtStatistics.Columns.Add(COLUM_NODE_ID_AVG, typeof(int));
