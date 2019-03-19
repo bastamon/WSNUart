@@ -93,7 +93,7 @@ namespace WSNUart
 
         const byte CODEID_VALUE = 0x44;
         const string ACK = "264\n";             //LS1705101512
-        const int DEFAULT_PKG_NUM = 10;
+        const int DEFAULT_PKG_NUM = 100;
 
         const int VOLT_COLUMN = 3;
 
@@ -366,9 +366,10 @@ namespace WSNUart
                                 }
                         }
                     }
-                    catch (Exception e)
+                    catch (Exception ex)
                     {
-                        MessageBox.Show(e.Message);
+                        //MessageBox.Show(e.Message);
+                        Console.WriteLine(string.Format("catch unsolve exception: {0}\r\n异常信息：{1}\r\n异常堆栈：{2}", ex.GetType(), ex.Message, ex.StackTrace));
                     }
                 }
                 else
@@ -470,6 +471,7 @@ namespace WSNUart
                     catch (Exception ex)
                     {
                         MessageBox.Show(ex.Message);
+                        //Console.WriteLine(string.Format("catch unsolve exception: {0}\r\n异常信息：{1}\r\n异常堆栈：{2}", ex.GetType(), ex.Message, ex.StackTrace));
                     }
                 }
                 
@@ -602,7 +604,7 @@ namespace WSNUart
 
 
             m_listValue.Clear();
-            if (this.dataGridView1.RowCount >= 0x100)
+            if (this.dataGridView1.RowCount >= 0x800)
             {
                 this.dataGridView1.Rows.RemoveAt(0);
                 dataset.Tables[TABLE_INPUTDATA_NAME].Rows.RemoveAt(0);
@@ -837,9 +839,10 @@ namespace WSNUart
                     return;
                 }
             }
-            catch (Exception exc)
+            catch (Exception ex)
             {
-                MessageBox.Show(exc.Message);
+                MessageBox.Show(ex.Message);
+                //Console.WriteLine(string.Format("catch unsolve exception: {0}\r\n异常信息：{1}\r\n异常堆栈：{2}", ex.GetType(), ex.Message, ex.StackTrace));
             }
         }
       
@@ -1319,6 +1322,7 @@ namespace WSNUart
             // sql数据源
             string selectStr = "SELECT DISTINCT " + COLUM_NODE_ID + " FROM " + TABLE_INPUTDATA_NAME;
             DataTable datadistinct = new AccessOperate(m_connStr).MyExecuteDataSet(selectStr).Tables[0];
+                    
             int tableLen = dtStatistics.Rows.Count;
             datadistinct.Dispose();
 
@@ -1326,6 +1330,9 @@ namespace WSNUart
             DataTable[] diffdtOri = new DataTable[tableLen];//空表
             selectStr = "SELECT " + COLUM_NODE_ID + ", " + COLUM_RSSI + ", " + COLUM_SEQ_NO + ", " + COLUM_GET_TIME + ", " + COLUM_VOLT + ", " + COLUM_HOP_COUNT + ", " + COLUM_TIME_DIFF + " FROM " + TABLE_INPUTDATA_NAME;
             DataTable datasrc = new AccessOperate(m_connStr).MyExecuteDataSet(selectStr).Tables[0];
+
+
+
 
 
             for (int k = 0; k < tableLen; k++)
@@ -1343,10 +1350,12 @@ namespace WSNUart
             }
 
 
-
-
             for (int k = 0; k < tableLen; k++)
             {
+                if(diffdtOri[k]==null)
+                {
+                    continue;
+                }
                 int avgId = Convert.ToInt32(diffdtOri[k].Rows[0][COLUM_NODE_ID]);
                 selectStr = string.Format("{0}='{1}'", COLUM_NODE_ID, avgId);                
 

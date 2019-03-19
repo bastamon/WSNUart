@@ -134,7 +134,8 @@ namespace WSNUart
             { ;}
             else
             {
-                MessageBox.Show("增加记录失败！", "提示");       // 插入记录失败的操作
+                Console.WriteLine("增加记录失败！");
+                //MessageBox.Show("增加记录失败！", "提示");       // 插入记录失败的操作
             }
             return isSuccess;
         }
