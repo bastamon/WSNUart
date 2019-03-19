@@ -14,21 +14,21 @@ namespace WSNUart
     {
         public AccessOperate m_aceOP;
         public Dictionary<string, List<string>> m_myDic;
-        //public List<string> m_listFiled;
-        //public List<string> m_listValue;
+        public List<string> m_listFiled;
+        public List<string> m_listValue;
         private string m_tableName;
-        //public int m_length;
+        public int m_length;
         //public string dbName;
         //private m_con
         public TestData_BLL()
         {
             m_tableName = "";
-            //m_listFiled = new List<string>();
-            //ini_Filed(ref m_listFiled);
-            //m_length = m_listFiled.Count();
+            m_listFiled = new List<string>();
+            ini_Filed(ref m_listFiled);
+            m_length = m_listFiled.Count();
 
-            //m_listValue = new List<string>();
-            //ini_strFieldValue(ref m_listValue, m_length);
+            m_listValue = new List<string>();
+            ini_strFieldValue(ref m_listValue, m_length);
             m_aceOP = new AccessOperate();            
             m_myDic = new Dictionary<string, List<string>>();
         }
@@ -42,16 +42,16 @@ namespace WSNUart
         {
             return m_tableName;
         }
-        //void ini_Filed(ref List<string> strFiled) 
-        //{
-        //    strFiled.Add("id");
-        //    strFiled.Add("recvPkgCount");
-        //    strFiled.Add("lossPkgRatio");
-        //    strFiled.Add("avgRSSI");
-        //    strFiled.Add("voltDiff");
-        //    strFiled.Add("avgHopCount");
-        //    strFiled.Add("avgTimeDiff");
-        //}
+        void ini_Filed(ref List<string> strFiled) 
+        {
+            strFiled.Add("id");
+            strFiled.Add("recvPkgCount");
+            strFiled.Add("lossPkgRatio");
+            strFiled.Add("avgRSSI");
+            strFiled.Add("voltDiff");
+            strFiled.Add("avgHopCount");
+            strFiled.Add("avgTimeDiff");
+        }
         
         void ini_strFieldValue(ref List<string> listValue, int count)
         {

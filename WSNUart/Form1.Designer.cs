@@ -179,7 +179,7 @@
             dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
             this.dataGridView1.RowsDefaultCellStyle = dataGridViewCellStyle3;
             this.dataGridView1.RowTemplate.Height = 23;
-            this.dataGridView1.Size = new System.Drawing.Size(604, 343);
+            this.dataGridView1.Size = new System.Drawing.Size(736, 343);
             this.dataGridView1.TabIndex = 14;
             this.dataGridView1.RowStateChanged += new System.Windows.Forms.DataGridViewRowStateChangedEventHandler(this.dataGridView1_RowStateChanged);
             // 
@@ -222,7 +222,7 @@
             this.dgvStatistic.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.AutoSizeToDisplayedHeaders;
             this.dgvStatistic.RowTemplate.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
             this.dgvStatistic.RowTemplate.Height = 23;
-            this.dgvStatistic.Size = new System.Drawing.Size(604, 205);
+            this.dgvStatistic.Size = new System.Drawing.Size(736, 205);
             this.dgvStatistic.TabIndex = 19;
             this.dgvStatistic.RowStateChanged += new System.Windows.Forms.DataGridViewRowStateChangedEventHandler(this.dgvStatistic_RowStateChanged);
             // 
@@ -317,7 +317,7 @@
             this.帮助ToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(834, 25);
+            this.menuStrip1.Size = new System.Drawing.Size(966, 25);
             this.menuStrip1.TabIndex = 53;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -418,7 +418,7 @@
             this.ExitSYSButton});
             this.toolStrip1.Location = new System.Drawing.Point(0, 25);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(834, 25);
+            this.toolStrip1.Size = new System.Drawing.Size(966, 25);
             this.toolStrip1.TabIndex = 54;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -523,7 +523,7 @@
             this.TimeVauleLbl});
             this.statusStrip1.Location = new System.Drawing.Point(0, 605);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(834, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(966, 22);
             this.statusStrip1.TabIndex = 55;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -531,7 +531,7 @@
             // 
             this.PromptLabel.AutoSize = false;
             this.PromptLabel.Name = "PromptLabel";
-            this.PromptLabel.Size = new System.Drawing.Size(351, 17);
+            this.PromptLabel.Size = new System.Drawing.Size(483, 17);
             this.PromptLabel.Spring = true;
             this.PromptLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
@@ -609,7 +609,7 @@
             // 
             this.splitContainer1.Panel2.Controls.Add(this.splitContainer2);
             this.splitContainer1.Panel2.Padding = new System.Windows.Forms.Padding(0, 0, 6, 3);
-            this.splitContainer1.Size = new System.Drawing.Size(834, 555);
+            this.splitContainer1.Size = new System.Drawing.Size(966, 555);
             this.splitContainer1.SplitterDistance = 220;
             this.splitContainer1.TabIndex = 56;
             // 
@@ -781,7 +781,7 @@
             // splitContainer2.Panel2
             // 
             this.splitContainer2.Panel2.Controls.Add(this.dgvStatistic);
-            this.splitContainer2.Size = new System.Drawing.Size(604, 552);
+            this.splitContainer2.Size = new System.Drawing.Size(736, 552);
             this.splitContainer2.SplitterDistance = 343;
             this.splitContainer2.TabIndex = 0;
             // 
@@ -797,7 +797,7 @@
             // Form1
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
-            this.ClientSize = new System.Drawing.Size(834, 627);
+            this.ClientSize = new System.Drawing.Size(966, 627);
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.toolStrip1);
