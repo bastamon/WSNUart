@@ -96,18 +96,22 @@ namespace WSNUart
         public int myExecuteNoQuery(string sql, string myConnectionString)
         {
             int i = 0; 
+            OleDbConnection cnn = new OleDbConnection(myConnectionString);
             try
-            {
-                OleDbConnection cnn = new OleDbConnection(myConnectionString);
+            {                
                 cnn.Open();
                 OleDbCommand cmd = new OleDbCommand(sql, cnn);
                 cmd.CommandType = CommandType.Text;
                 i = cmd.ExecuteNonQuery();
-                cnn.Close();                
+                //cnn.Close();             
             }
             catch (Exception ex)
             {
                 Console.WriteLine(string.Format("catch unsolve exception: {0}\r\n异常信息：{1}\r\n异常堆栈：{2}", ex.GetType(), ex.Message, ex.StackTrace));
+            }
+            finally
+            {
+                cnn.Close();  
             }
             return i;
         }

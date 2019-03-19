@@ -202,7 +202,7 @@ namespace WSNUart
             //ini_strFieldValue(ref m_listValue, m_length);
 
             strProvider = "Microsoft.ACE.OLEDB.12.0";
-            strCustomerDirectory = "\\WSNTestData";
+            strCustomerDirectory = "WSNTestData";
             strTemplateDb = "templateDB.accdb";
             strCurrentPath = Environment.CurrentDirectory;
             dest_dbPath = string.Format("{0}\\{1}", strCurrentPath, strCustomerDirectory);
@@ -281,7 +281,7 @@ namespace WSNUart
                                     m_Result.nodeId = (ushort)((testResult[(int)ByteOrder.NODEID] << 8) + testResult[(int)ByteOrder.NODEID + 1]);
                                     if (m_Result.protId != 0x10)
                                     {
-                                        if (testResult[(int)ByteOrder.RSSI_VAL] > 128)
+                                        if (testResult[(int)ByteOrder.RSSI_VAL] <= 128)
                                         {
                                             m_Result.rssi = -45 + testResult[(int)ByteOrder.RSSI_VAL] - 256;
                                         }
@@ -291,9 +291,10 @@ namespace WSNUart
                                         }
                                     }
                                     else
-                                    { 
-                                        m_Result.rssi = (int)testResult[(int)ByteOrder.RSSI_VAL];
+                                    {
+                                        m_Result.rssi = testResult[(int)ByteOrder.RSSI_VAL];
                                     }
+
 
                                     m_Result.volt = ((testResult[(int)ByteOrder.VOLT] << 8) + testResult[(int)ByteOrder.VOLT + 1]) * 3.75 / 8192;
                                     m_Result.hopCount = testResult[(int)ByteOrder.HOPCPUNT];
@@ -323,16 +324,23 @@ namespace WSNUart
 
                                             if ((int)drSel[COLUM_AVG_PKTCNT] < m_PacketNum)
                                             {
-                                                if (isFulled(drSel, m_Result.nodeId))/*(int)drSel[COLUM_AVG_PKTCNT] == m_PacketNum)*///按序号距离判断
+                                                if (isFulled(drSel,m_Result.seqNO))/*(int)drSel[COLUM_AVG_PKTCNT] == m_PacketNum)*///按序号距离判断
                                                 {
                                                     updateVoltage(drSel, m_Result.volt);
                                                     m_DoneCntr++;
                                                 }
-                                                else 
+                                                else
                                                 {
                                                     updateStatItem(drSel);
                                                     appendData();
                                                 }
+                                                //updateStatItem(drSel);
+                                                //appendData();
+                                            }
+                                            else
+                                            {
+                                                updateVoltage(drSel, m_Result.volt);
+                                                m_DoneCntr++;
                                             }
                                         }
                                         else
@@ -383,11 +391,11 @@ namespace WSNUart
 
 
 
-        public bool isFulled(DataRow drSel,int nodeId)
+        public bool isFulled(DataRow drSel,int seqNO)
         {
-            int maxNo = Convert.ToInt32(drSel[COLUM_AVG_LASTSN]);//找最大
+            //int maxNo = Convert.ToInt32(drSel[COLUM_AVG_LASTSN]);//找最大
             int minNo = Convert.ToInt32(drSel[COLUM_AVG_INITSN]);
-            if (maxNo - minNo >= m_PacketNum - 1)
+            if (seqNO - minNo < m_PacketNum)
             {
                 //if (maxNo - minNo > m_PacketNum - 1)
                 //{
@@ -402,9 +410,9 @@ namespace WSNUart
                 //        Console.WriteLine(string.Format("catch unsolve exception: {0}\r\n异常信息：{1}\r\n异常堆栈：{2}", ex.GetType(), ex.Message, ex.StackTrace));
                 //    }
                 //}
-                return true;
+                return false;
             }
-            return false;
+            return true;
         }
 
 
@@ -603,71 +611,41 @@ namespace WSNUart
 
         private bool saveResults()
         {
-            string strSQL = "INSERT INTO " + TABLE_INPUTDATA_NAME + " ("
-                + COLUM_NODE_ID + ","
-                + COLUM_SEQ_NO + ","
-                + COLUM_RSSI + ","
-                + COLUM_VOLT + ","
-                + COLUM_HOP_COUNT + ","
-                + COLUM_TIME_DIFF + ","
-                + COLUM_GET_TIME + ") VALUES (";
-            int rowIdx = m_dtSummary.Rows.Count - 1;
-
+            string strSQL;
             using (OleDbConnection conn = new OleDbConnection(m_connStr))
             {
                 try
                 {
                     conn.Open();
                     showSatus("正在保存数据...");
-
-                    OleDbCommand cmd = new OleDbCommand();
-                    cmd.Connection = conn;
-                    for (int i = 0; i < dtOri.Rows.Count; i++)
+                    for (int rowIdx = 0; rowIdx < m_dtSummary.Rows.Count - 1; rowIdx++)
                     {
-                        cmd.CommandText = strSQL + "'" + dtOri.Rows[i][COLUM_NODE_ID].ToString() + "'" + ","
-                        + "'" + dtOri.Rows[i][COLUM_SEQ_NO].ToString() + "'" + ","
-                        + "'" + dtOri.Rows[i][COLUM_RSSI].ToString() + "'" + ","
-                        + "'" + dtOri.Rows[i][COLUM_VOLT].ToString() + "'" + ","
-                        + "'" + dtOri.Rows[i][COLUM_HOP_COUNT].ToString() + "'" + ","
-                        + "'" + dtOri.Rows[i][COLUM_TIME_DIFF].ToString() + "'" + ","
-                        + "'" + dtOri.Rows[i][COLUM_GET_TIME].ToString() + "'" + ")";
+                        OleDbCommand cmd = new OleDbCommand();
+                        cmd.Connection = conn;
+                        strSQL = COLUM_NODE_ID_AVG + ","
+                            + COLUM_LOSS_PKG_COUNT + ","
+                            + COLUM_LOSS_PKG_RATIO + ","
+                            + COLUM_AVG_RSSI + ","
+                            + COLUM_VOLT_DIFF + ","
+                            + COLUM_AVG_HOP + ","
+                            + COLUM_AVG_TIME_DIFF + ","
+                            + COLUM_AVG_PKTCNT + ","
+                            + COLUM_AVG_REPCNT;
+
+
+                        cmd.CommandText = "INSERT INTO " + TABLENAME_COMPUTE + "(" + strSQL + ") VALUES ("
+                            + "'" + "0000" + dtStatistics.Rows[rowIdx][COLUM_NODE_ID_AVG].ToString() + "'" + ","
+                            + "'" + m_dtSummary.Rows[rowIdx][COLUM_SUM_LOSSCNT].ToString() + "'" + ","
+                            + "'" + m_dtSummary.Rows[rowIdx][COLUM_SUM_AVGLOSSRATIO].ToString() + "'" + ","
+                            + "'" + m_dtSummary.Rows[rowIdx][COLUM_SUM_AVGRSSI].ToString() + "'" + ","
+                            + "'" + m_dtSummary.Rows[rowIdx][COLUM_SUM_AVGVOLTDEC].ToString() + "'" + ","
+                            + "'" + m_dtSummary.Rows[rowIdx][COLUM_SUM_AVGHOP].ToString() + "'" + ","
+                            + "'" + m_dtSummary.Rows[rowIdx][COLUM_SUM_AVGDELAY].ToString() + "'" + ","
+                            + "'" + m_dtSummary.Rows[rowIdx][COLUM_SUM_PCKCNT].ToString() + "'" + ","
+                            + "'" + m_dtSummary.Rows[rowIdx][COLUM_SUM_REPCNT].ToString() + "'" + ")";
 
                         cmd.ExecuteNonQuery();
-                    }
-
-                    strSQL = COLUM_NODE_ID_AVG + ","
-                        + COLUM_LOSS_PKG_COUNT + ","
-                        + COLUM_LOSS_PKG_RATIO + ","
-                        + COLUM_AVG_RSSI + ","
-                        + COLUM_VOLT_DIFF + ","
-                        + COLUM_AVG_HOP + ","
-                        + COLUM_AVG_TIME_DIFF + ","
-                        + COLUM_AVG_PKTCNT + ","
-                        + COLUM_AVG_REPCNT;
-                    OleDbDataAdapter da = new OleDbDataAdapter(strSQL, conn);
-                    da.SelectCommand.CommandText = "SELECT " + strSQL + " FROM "+ TABLENAME_COMPUTE;
-
-                    OleDbCommandBuilder builder = new OleDbCommandBuilder(da);
-                    da.Update(dataset.Tables[TABLE_STATISTIC]);
-
-                    cmd.CommandText = "INSERT INTO "+ TABLENAME_COMPUTE+ "(" +strSQL+") VALUES ("
-                        + "'" + "0000" + "'" + ","
-                        + "'" + m_dtSummary.Rows[rowIdx][COLUM_SUM_LOSSCNT].ToString() + "'" + ","
-                        + "'" + m_dtSummary.Rows[rowIdx][COLUM_SUM_AVGLOSSRATIO].ToString() + "'" + ","
-                        + "'" + m_dtSummary.Rows[rowIdx][COLUM_SUM_AVGRSSI].ToString() + "'" + ","
-                        + "'" + m_dtSummary.Rows[rowIdx][COLUM_SUM_AVGVOLTDEC].ToString() + "'" + ","
-                        + "'" + m_dtSummary.Rows[rowIdx][COLUM_SUM_AVGHOP].ToString() + "'" + ","
-                        + "'" + m_dtSummary.Rows[rowIdx][COLUM_SUM_AVGDELAY].ToString() + "'" + ","
-                        + "'" + m_dtSummary.Rows[rowIdx][COLUM_SUM_PCKCNT].ToString() + "'" + ","
-                        + "'" + m_dtSummary.Rows[rowIdx][COLUM_SUM_REPCNT].ToString() + "'" + ")";
-
-                    cmd.ExecuteNonQuery();
-
-                    //strSQL = "SELECT * FROM " + TABLE_INPUTDATA_NAME;
-                    //da.SelectCommand.CommandText = strSQL;
-                    //builder.RefreshSchema();
-                    //da.Update(dataset.Tables[TABLE_INPUTDATA_NAME]);
-
+                    } 
                     conn.Close();
                     showSatus("保存成功.");
                     return true;
@@ -1364,6 +1342,9 @@ namespace WSNUart
                 diffdtOri[k] = ToDataTable(dtmp);//已排序
             }
 
+
+
+
             for (int k = 0; k < tableLen; k++)
             {
                 int avgId = Convert.ToInt32(diffdtOri[k].Rows[0][COLUM_NODE_ID]);
@@ -1371,24 +1352,35 @@ namespace WSNUart
 
                 //DataRow[] drSeq = diffdtOri[k].Select(selectStr, COLUM_SEQ_NO + " ASC");
                 lostCnt = 0;
+                repCnt = 0;
+
+
                 for (int i = 0; i < diffdtOri[k].Rows.Count - 1; i++)
-                {
-                    //lostCnt += Convert.ToInt32(diffdtOri[k].Rows[i + 1][COLUM_SEQ_NO]) - Convert.ToInt32(diffdtOri[k].Rows[i][COLUM_SEQ_NO]) - 1;
+                {                    
                     if (Convert.ToInt32(diffdtOri[k].Rows[i][COLUM_SEQ_NO]) == Convert.ToInt32(diffdtOri[k].Rows[i + 1][COLUM_SEQ_NO]))// 有重复
                     {
                         repCnt += 1;
                     }
+                    else if (diffdtOri[k].Rows.Count == m_PacketNum && Convert.ToInt32(diffdtOri[k].Rows[i + 1][COLUM_SEQ_NO]) > Convert.ToInt32(diffdtOri[k].Rows[i][COLUM_SEQ_NO]))
+                    {
+                        lostCnt += Convert.ToInt32(diffdtOri[k].Rows[i + 1][COLUM_SEQ_NO]) - Convert.ToInt32(diffdtOri[k].Rows[i][COLUM_SEQ_NO]) - 1;
+                    }
+
                 }
-                
+
 
                 DataTable distinctTable = SelectDistinct(diffdtOri[k],COLUM_SEQ_NO);
                 recPkg = distinctTable.Rows.Count;
-                lostCnt = m_PacketNum - recPkg;
+                if (diffdtOri[k].Rows.Count > m_PacketNum)
+                {
+                    lostCnt = m_PacketNum - recPkg;
+                }                
+                distinctTable.Dispose();
                 maxVolt = Convert.ToDouble(diffdtOri[k].Compute("Max(" + COLUM_VOLT + ")", selectStr));
                 minVolt = Convert.ToDouble(diffdtOri[k].Compute("Min(" + COLUM_VOLT + ")", selectStr));
 
-                pckTotal = lostCnt + recPkg + recPkg;//==m_PacketNum
-                avgLossR = Convert.ToDouble(lostCnt) / Convert.ToDouble(recPkg + lostCnt) * 100;
+                pckTotal = lostCnt + recPkg + repCnt;//==m_PacketNum
+                avgLossR = Convert.ToDouble(lostCnt) / Convert.ToDouble(m_PacketNum/*recPkg + lostCnt*/) * 100.0;
                 avgRssi = Convert.ToDouble(diffdtOri[k].Compute("Avg(" + COLUM_RSSI + ")", selectStr));
                 avgVoltDec = maxVolt - minVolt;
                 avgHop = Convert.ToDouble(diffdtOri[k].Compute("Avg(" + COLUM_HOP_COUNT + ")", selectStr));
@@ -1472,8 +1464,8 @@ namespace WSNUart
             }
             if (m_bDate4Save)
             {
-                strDBName = "WSN_" + CurrentTime() + ".accdb";
-                System.IO.File.Copy(strCurrentPath + "\\" + strTemplateDb, dest_dbPath + "\\" + strDBName, true);          //根据模板创建db文件
+                //strDBName = "WSN_" + CurrentTime() + ".accdb";
+                //System.IO.File.Copy(strCurrentPath + "\\" + strTemplateDb, dest_dbPath + "\\" + strDBName, true);          //根据模板创建db文件
                 m_connStr = string.Format("Provider={0}; Data Source={1};", strProvider, dest_dbPath + "\\" + strDBName);
 
                 if (saveResults())
